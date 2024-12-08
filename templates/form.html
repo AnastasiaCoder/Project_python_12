@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <title>Прогноз погоды по маршруту</title>
+</head>
+<body>
+ <form action="/forecast" method="POST">
+ <label for="start">Начало маршрута(город):</label>
+ <input type="text" name="start" required><br>
+ <label for="end">Конец маршрута(город):</label>
+ <input type="text" name="end" required><br>
+ <input type="submit" value="Отправить">
+ </form>
+</body>
+</html>
