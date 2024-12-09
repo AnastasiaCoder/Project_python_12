@@ -5,11 +5,13 @@
  <title>Прогноз погоды по маршруту</title>
 </head>
 <body>
+    <h1>Погода на маршруте</h1>
     <table>
         <thead>
         <tr>
         <th>Точка маршрута</th>
         <th>Город</th>
+        <th>Дата</th>
         <th>Погода</th>
         </tr>
         </thead>
@@ -17,11 +19,13 @@
         <tr>
         <td>Начало</td>
         <td>{{start_city}}</td>
+        <td>{{start_date}}</td>
         <td>{{start_forecast}}</td>
         </tr>
         <tr>
         <td>Конец</td>
         <td>{{end_city}}</td>
+        <td>{{end_date}}</td>
         <td>{{end_forecast}}</td>
         </tr>
         </tbody>

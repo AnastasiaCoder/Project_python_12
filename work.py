@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify, render_template
 import requests
+from datetime import datetime
+from dateutil.parser import isoparse
+import json
 
 app = Flask(__name__)
 
-API_KEY = 'cJ5Oaed2PCAGmwf7PsrDNG1nYKGCCFay'
+API_KEY = 'HQiLZ7p01kG5yGYFN6TasGWfV2GGb7A4'
 
 def get_location_key(city_name):
     if not city_name:
@@ -27,8 +30,8 @@ def get_weather(location_key):
     else:
         return None
 
-def check_bad_weather(temperature_max, temperature_min, wind_speed, rain_probability):
-    if (temperature_min < 0 or temperature_max > 35) or (wind_speed > 50) or (rain_probability > 70):
+def check_bad_weather(temperature_max, temperature_min, wind_speed, rain_probability, snow_probability):
+    if (temperature_min < 0 or temperature_max > 35) or (wind_speed > 50) or (rain_probability > 70) or (snow_probability > 70):
         return "Плохие погодные условия"
     return "Хорошие погодные условия"
 
@@ -60,20 +63,29 @@ def forecast():
         return 'Ошибка обработки конечной точки маршрута, проверьте введённые данные'
     except Exception as e:
         return 'Ошибка обработки запроса, свяжитесь с администратором'
+    
+    first_date_str = weather_end['date']
+    first_date = isoparse(first_date_str[:-1])  # Убираем последний символ
+
+    # Форматируем дату в нужный вид
+    formatted_date = first_date.strftime('%Y-%m-%d %H:%M')
 
     return render_template("forecast.html",
         start_city = start_city,
         end_city = end_city,
         start_forecast = weather_start['weather_condition'],
-        end_forecast = weather_end['weather_condition'])
+        end_forecast = weather_end['weather_condition'],
+        start_date = formatted_date,
+        end_date = formatted_date
+    )
 
 
-@app.route('/location_key/<city_name>')
+# @app.route('/location_key/<city_name>')
 def location_key(city_name):
     return get_location_key(city_name)
 
 
-@app.route('/weather/<location_key>', methods=['GET'])
+# @app.route('/weather/<location_key>', methods=['GET'])
 def weather(location_key):
     # Получение прогноза погоды по ключу местоположения
     data = get_weather(location_key)
@@ -87,8 +99,9 @@ def weather(location_key):
         wind_speed = day['Wind']['Speed']['Value'] # скорость ветра
         rain_probability = day['RainProbability'] # вероятность дождя
         humidity = day['RelativeHumidity']['Average'] # средняя влажность
+        snow_probability = day['SnowProbability'] # вероятность выпадения снега
 
-        weather_condition = check_bad_weather(temperature_max, temperature_min, wind_speed, rain_probability)
+        weather_condition = check_bad_weather(temperature_max, temperature_min, wind_speed, rain_probability, snow_probability)
 
         result = {
             'date': forecast['Date'],
@@ -96,32 +109,15 @@ def weather(location_key):
             'temperature_min': temperature_min,
             'wind_speed': wind_speed,
             'rain_probability': rain_probability, 
+            'snow_probability': snow_probability,
             'humidity': humidity,
             'weather_condition': weather_condition
         }
 
-        return jsonify(result)
+        return result
     else:
-        return jsonify({'error': 'Не удалось получить данные о погоде'}), 500
+        return {'error': 'Не удалось получить данные о погоде'}
     
-@app.route('/weather_map/<start_location>/<end_location>', methods=['GET'])
-def weather_route():
-    start_location = request.args.get('start')
-    end_location = request.args.get('end')
-    
-    # Здесь вы можете добавить логику для получения данных о погоде
-    # Например, вызов функции get_weather() с использованием ключей местоположения
-    
-    # Пример возврата данных (замените на вашу логику)
-    return jsonify({
-        'start': start_location,
-        'end': end_location,
-        'temperature_max': 10,  # Замените на реальные данные
-        'wind_speed': 15,       # Замените на реальные данные
-        'precipitation_probability': 30,  # Замените на реальные данные
-        'weather_condition': 'Хорошие погодные условия'  # Замените на реальные данные
-    })
-
 if __name__ == '__main__':
     app.run(debug=True)
 
